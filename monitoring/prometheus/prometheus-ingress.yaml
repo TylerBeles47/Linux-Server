@@ -1,0 +1,33 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: prometheus-ingress
+  namespace: monitoring
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  rules:
+  - host: prometheus.homelab.local
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: prometheus-service
+            port:
+              number: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: prometheus-loadbalancer
+  namespace: monitoring
+spec:
+  type: LoadBalancer
+  selector:
+    app: prometheus
+  ports:
+    - port: 9090
+      targetPort: 9090
+      protocol: TCP
