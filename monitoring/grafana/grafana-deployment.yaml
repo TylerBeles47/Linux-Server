@@ -29,8 +29,8 @@ spec:
           value: "admin"
         - name: GF_SECURITY_ADMIN_PASSWORD
           value: "homelab123"
-        - name: GF_INSTALL_PLUGINS
-          value: "grafana-kubernetes-app,grafana-piechart-panel"
+        # - name: GF_INSTALL_PLUGINS
+        #   value: "grafana-kubernetes-app,grafana-piechart-panel"
         volumeMounts:
         - name: grafana-storage
           mountPath: /var/lib/grafana
@@ -43,14 +43,16 @@ spec:
           httpGet:
             path: /api/health
             port: 3000
-          initialDelaySeconds: 30
+          initialDelaySeconds: 60
           timeoutSeconds: 30
+          periodSeconds: 30
         readinessProbe:
           httpGet:
             path: /api/health
             port: 3000
-          initialDelaySeconds: 5
-          timeoutSeconds: 10
+          initialDelaySeconds: 30
+          timeoutSeconds: 30
+          periodSeconds: 15
         resources:
           requests:
             memory: 100Mi
