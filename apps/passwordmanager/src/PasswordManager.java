@@ -1,10 +1,22 @@
 import java.util.*;
+import javax.crypto.*;
+import javax.crypto.spec.*;
+import java.security.*;
+import java.security.spec.KeySpec;
+import javax.crypto.spec.PBEKeySpec;
+import javax.crypto.spec.SecretKeySpec;
+import java.sql.*;
+import java.io.UnsupportedEncodingException;
+
+
 
 public class PasswordManager{
     private String appName;
     private Scanner scanner;
     private PasswordEntry currentEntry;
     private ArrayList<PasswordEntry> passwordList;
+    private byte[] salt;
+    private SecretKey encryptionKey;
 
 
     // Constructor
@@ -13,6 +25,48 @@ public class PasswordManager{
         this.scanner = new Scanner(System.in);
         this.passwordList = new ArrayList<>();
         System.out.println("Created a new" + appName);
+        this.salt = generateSalt();
+    }
+
+    private byte[] generateSalt() {
+        SecureRandom random = new SecureRandom();
+        byte[] salt = new byte[16];
+        random.nextBytes(salt);
+        return salt;
+    }
+    private SecretKey deriveKeyFromPassword(String masterPassword) throws Exception{
+        KeySpec spec = new PBEKeySpec(masterPassword.toCharArray(), salt, 65536, 256);
+        SecretKeyFactory factory = SecretKeyFactory.getInstance("PBKDF2WithHmacSHA256");
+        return new SecretKeySpec(factory.generateSecret(spec).getEncoded(), "AES");
+    }
+
+    private String encrypt(String plaintext) throws Exception{
+        Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+        cipher.init(Cipher.ENCRYPT_MODE, encryptionKey);
+        byte[] iv = cipher.getIV();
+        byte[] encrypted = cipher.doFinal(plaintext.getBytes("UTF-8"));
+        
+        byte[] encryptedWithIv = new byte[iv.length + encrypted.length];
+        System.arraycopy(iv, 0, encryptedWithIv, 0, iv.length);
+        System.arraycopy(encrypted, 0, encryptedWithIv, iv.length, encrypted.length);
+
+        return Base64.getEncoder().encodeToString(encryptedWithIv);
+    }
+
+    private String decrypt(String encryptedText) throws Exception {
+        byte[] encryptedWithIv = Base64.getDecoder().decode(encryptedText);
+        byte[] iv = new byte[16];
+        byte[] encrypted = new byte[encryptedWithIv.length - 16];
+        
+        System.arraycopy(encryptedWithIv, 0, iv, 0, 16);
+        System.arraycopy(encryptedWithIv, 16, encrypted, 0, encrypted.length);
+        
+        Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
+        IvParameterSpec ivSpec = new IvParameterSpec(iv);
+        cipher.init(Cipher.DECRYPT_MODE, encryptionKey, ivSpec);
+        
+        byte[] decrypted = cipher.doFinal(encrypted);
+        return new String(decrypted, "UTF-8");
     }
 
     public static void main(String[] args) {
@@ -29,10 +83,19 @@ public class PasswordManager{
         System.out.println("============================");
         System.out.println("Please enter your Name");
         String name = scanner.nextLine();
-        System.out.println("Hello " + name + " lets set up your Master Password");
+        System.out.println("Hello " + name + " Please enter your Master Password: ");
 
+        String masterPassword = scanner.nextLine();
+        try {
+            this.encryptionKey = deriveKeyFromPassword(masterPassword);
+            System.out.println("Master password setup succesfully");
 
-        createPasswordEntry();
+        } catch (Exception e){
+            System.out.println("error setting up encryption:" + e.getMessage());
+            return;
+        }
+
+        
 
         
         showMenu();
@@ -73,11 +136,14 @@ public class PasswordManager{
         System.out.println("Please enter your password");
         String password = scanner.nextLine();
 
-        this.currentEntry = new PasswordEntry(service, password);
-        this.passwordList.add(currentEntry);
-        System.out.println("Password entry created successfully!");
+        try{
+            String encryptPassword = encrypt(password);
+            this.currentEntry = new PasswordEntry(service, encryptPassword);
+            this.passwordList.add(currentEntry);
+        }catch (Exception e) {
+            e.printStackTrace();
+        }
 
-        
     }
 
     private void viewAllPasswords(){
@@ -89,8 +155,12 @@ public class PasswordManager{
 
         for (int i = 0; i < passwordList.size(); i++){
             PasswordEntry entry = passwordList.get(i);
-            System.out.println(entry.getDescription());
-            
+            try {
+                String decryptedPassword = decrypt(entry.getPassword());
+                System.out.println("Service: " + entry.getService() + ", Password: " + decryptedPassword);
+            } catch (Exception e) {
+                System.out.println("Error decrypting password for " + entry.getService());
+            }
         }
         return;
 
@@ -121,10 +191,16 @@ public class PasswordManager{
             return;
         }
 
-            System.out.println("\n✏️ Update Password Entry for" + service);
+            System.out.println("\n✏️ Update Password Entry for " + service);
             System.out.println("Enter new password:");
             String newPassword = scanner.nextLine();
-            currentEntry.setPassword(newPassword);
+            try {
+                String encryptedPassword = encrypt(newPassword);
+                entry.setPassword(encryptedPassword);
+                System.out.println("Password updated successfully!");
+            } catch (Exception e) {
+                System.out.println("Error updating password: " + e.getMessage());
+            }
         
     }
 }
