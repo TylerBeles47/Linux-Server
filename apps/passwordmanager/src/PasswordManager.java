@@ -14,18 +14,16 @@ public class PasswordManager{
     private String appName;
     private Scanner scanner;
     private PasswordEntry currentEntry;
-    private ArrayList<PasswordEntry> passwordList;
     private byte[] salt;
     private SecretKey encryptionKey;
+    private int userId;
 
 
     // Constructor
     public PasswordManager(){
         this.appName = " My First Password Manager";
         this.scanner = new Scanner(System.in);
-        this.passwordList = new ArrayList<>();
         System.out.println("Created a new" + appName);
-        this.salt = generateSalt();
     }
 
     private byte[] generateSalt() {
@@ -87,16 +85,14 @@ public class PasswordManager{
 
         String masterPassword = scanner.nextLine();
         try {
+            this.userId = authenticateOrCreateUser(name, masterPassword);
             this.encryptionKey = deriveKeyFromPassword(masterPassword);
-            System.out.println("Master password setup succesfully");
+            System.out.println("Master password setup successfully");
 
         } catch (Exception e){
-            System.out.println("error setting up encryption:" + e.getMessage());
+            System.out.println("Error setting up encryption: " + e.getMessage());
             return;
         }
-
-        
-
         
         showMenu();
     }
@@ -132,76 +128,149 @@ public class PasswordManager{
             return;
         }
     
-
         System.out.println("Please enter your password");
         String password = scanner.nextLine();
 
         try{
-            String encryptPassword = encrypt(password);
-            this.currentEntry = new PasswordEntry(service, encryptPassword);
-            this.passwordList.add(currentEntry);
+            String encryptedPassword = encrypt(password);
+            savePasswordToDatabase(service, encryptedPassword);
+            System.out.println("✅ Password saved successfully for " + service);
         }catch (Exception e) {
+            System.out.println("Error saving password: " + e.getMessage());
             e.printStackTrace();
         }
-
     }
 
     private void viewAllPasswords(){
-        if (passwordList.isEmpty()){
-            System.out.println("There are no stored passwords");
-            return;
-        }
-        System.out.println("Here are all your passwords");
-
-        for (int i = 0; i < passwordList.size(); i++){
-            PasswordEntry entry = passwordList.get(i);
-            try {
-                String decryptedPassword = decrypt(entry.getPassword());
-                System.out.println("Service: " + entry.getService() + ", Password: " + decryptedPassword);
-            } catch (Exception e) {
-                System.out.println("Error decrypting password for " + entry.getService());
+        try {
+            List<PasswordEntry> passwords = loadPasswordsFromDatabase();
+            if (passwords.isEmpty()){
+                System.out.println("There are no stored passwords");
+                return;
             }
-        }
-        return;
+            System.out.println("Here are all your passwords:");
+            System.out.println("============================");
 
+            for (PasswordEntry entry : passwords){
+                try {
+                    String decryptedPassword = decrypt(entry.getPassword());
+                    System.out.println("Service: " + entry.getService() + ", Password: " + decryptedPassword);
+                } catch (Exception e) {
+                    System.out.println("Error decrypting password for " + entry.getService());
+                }
+            }
+        } catch (Exception e) {
+            System.out.println("Error loading passwords: " + e.getMessage());
+        }
     }
 
     
     private PasswordEntry findPasswordEntry(String service){
-        for(PasswordEntry entry : passwordList){
-            if(entry.getService().equalsIgnoreCase(service))
-                return entry;
-            
+        try {
+            List<PasswordEntry> passwords = loadPasswordsFromDatabase();
+            for(PasswordEntry entry : passwords){
+                if(entry.getService().equalsIgnoreCase(service))
+                    return entry;
+            }
+        } catch (Exception e) {
+            System.out.println("Error searching for password: " + e.getMessage());
         }
         return null;
-        
     }
 
     private void updatePassword(){
-        if (passwordList.isEmpty()){
-            System.out.println("There is no valid entrys");
-            return;
-        }
+        try {
+            List<PasswordEntry> passwords = loadPasswordsFromDatabase();
+            if (passwords.isEmpty()){
+                System.out.println("There are no stored passwords");
+                return;
+            }
+            
             System.out.print("Enter service name to update: ");
             String service = scanner.nextLine();
 
             PasswordEntry entry = findPasswordEntry(service);
             if (entry == null) {
-            System.out.println("❌ No password found for: " + service);
-            return;
-        }
+                System.out.println("❌ No password found for: " + service);
+                return;
+            }
 
             System.out.println("\n✏️ Update Password Entry for " + service);
             System.out.println("Enter new password:");
             String newPassword = scanner.nextLine();
             try {
                 String encryptedPassword = encrypt(newPassword);
-                entry.setPassword(encryptedPassword);
-                System.out.println("Password updated successfully!");
+                updatePasswordInDatabase(service, encryptedPassword);
+                System.out.println("✅ Password updated successfully!");
             } catch (Exception e) {
                 System.out.println("Error updating password: " + e.getMessage());
             }
-        
+        } catch (Exception e) {
+            System.out.println("Error loading passwords: " + e.getMessage());
+        }
+    }
+    
+    private int authenticateOrCreateUser(String name, String masterPassword) throws Exception {
+        try (Connection conn = DatabaseConnection.getConnection()) {
+            String selectSql = "SELECT id, salt FROM users WHERE name = ?";
+            PreparedStatement selectStmt = conn.prepareStatement(selectSql);
+            selectStmt.setString(1, name);
+            ResultSet rs = selectStmt.executeQuery();
+            
+            if (rs.next()) {
+                this.salt = rs.getBytes("salt");
+                return rs.getInt("id");
+            } else {
+                this.salt = generateSalt();
+                String insertSql = "INSERT INTO users (name, salt) VALUES (?, ?) RETURNING id";
+                PreparedStatement insertStmt = conn.prepareStatement(insertSql);
+                insertStmt.setString(1, name);
+                insertStmt.setBytes(2, salt);
+                ResultSet insertRs = insertStmt.executeQuery();
+                insertRs.next();
+                System.out.println("New user created: " + name);
+                return insertRs.getInt("id");
+            }
+        }
+    }
+    
+    private void savePasswordToDatabase(String service, String encryptedPassword) throws SQLException {
+        try (Connection conn = DatabaseConnection.getConnection()) {
+            String sql = "INSERT INTO passwords (user_id, service, encrypted_password) VALUES (?, ?, ?)";
+            PreparedStatement stmt = conn.prepareStatement(sql);
+            stmt.setInt(1, userId);
+            stmt.setString(2, service);
+            stmt.setString(3, encryptedPassword);
+            stmt.executeUpdate();
+        }
+    }
+    
+    private List<PasswordEntry> loadPasswordsFromDatabase() throws SQLException {
+        List<PasswordEntry> passwords = new ArrayList<>();
+        try (Connection conn = DatabaseConnection.getConnection()) {
+            String sql = "SELECT service, encrypted_password FROM passwords WHERE user_id = ? ORDER BY service";
+            PreparedStatement stmt = conn.prepareStatement(sql);
+            stmt.setInt(1, userId);
+            ResultSet rs = stmt.executeQuery();
+            
+            while (rs.next()) {
+                String service = rs.getString("service");
+                String encryptedPassword = rs.getString("encrypted_password");
+                passwords.add(new PasswordEntry(service, encryptedPassword));
+            }
+        }
+        return passwords;
+    }
+    
+    private void updatePasswordInDatabase(String service, String encryptedPassword) throws SQLException {
+        try (Connection conn = DatabaseConnection.getConnection()) {
+            String sql = "UPDATE passwords SET encrypted_password = ?, updated_at = CURRENT_TIMESTAMP WHERE user_id = ? AND service = ?";
+            PreparedStatement stmt = conn.prepareStatement(sql);
+            stmt.setString(1, encryptedPassword);
+            stmt.setInt(2, userId);
+            stmt.setString(3, service);
+            stmt.executeUpdate();
+        }
     }
 }
 
