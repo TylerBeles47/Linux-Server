@@ -23,7 +23,7 @@ A complete K3s homelab setup with centralized dashboard, monitoring, automation,
 ## 📊 Monitoring & Management
 
 ### Cluster Monitoring
-![K9s Terminal Interface](screenshots/k9s-monitoring.png)
+![K9s Terminal Interface](screenshots/k9s.png)
 
 *Real-time cluster monitoring and management with k9s*
 
