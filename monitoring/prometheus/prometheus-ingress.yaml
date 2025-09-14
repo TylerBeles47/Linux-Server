@@ -4,8 +4,9 @@ metadata:
   name: prometheus-ingress
   namespace: monitoring
   annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /
+    ingress.cilium.io/loadbalancer-mode: dedicated
 spec:
+  ingressClassName: cilium
   rules:
   - host: prometheus.homelab.local
     http:
