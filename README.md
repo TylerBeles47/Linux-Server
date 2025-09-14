@@ -1,6 +1,12 @@
 # Homelab Kubernetes Cluster
 
-A Kubernetes homelab setup running across multiple nodes with monitoring and network services.
+A complete K3s homelab setup with centralized dashboard, monitoring, automation, and network services.
+
+## 📋 Dashboard
+
+![Homelab Dashboard](homelab-dashboard.png)
+
+*Centralized Homer dashboard providing easy access to all homelab services*
 
 ## 🏗️ Infrastructure
 
@@ -14,23 +20,43 @@ A Kubernetes homelab setup running across multiple nodes with monitoring and net
 - **Load Balancer**: MetalLB
 - **DNS**: Pi-hole on Raspberry Pi
 
-## 📊 Monitoring Stack
-- **Metrics**: Prometheus
-- **Visualization**: Grafana
+## 📊 Monitoring & Management
 
-## 🔐 Applications
+### Cluster Monitoring
+![K9s Terminal Interface](screenshots/k9s-monitoring.png)
 
-### Password Manager
-- **Language**: Java 11
-- **Database**: PostgreSQL
-- **Security**: AES-256 encryption with PBKDF2 key derivation
-- **Features**: Multi-user support, encrypted password storage
-- **Location**: `/apps/passwordmanager/`
+*Real-time cluster monitoring and management with k9s*
 
-### n8n Automation
-- **Platform**: Workflow automation
-- **Node**: EliteDesk
-- **Purpose**: Process automation and integrations
+### Metrics Stack
+- **Metrics**: Prometheus (http://192.168.1.202:9090)
+- **Visualization**: Grafana (http://192.168.1.201:3000)
+- **Cluster Management**: k9s terminal interface
+
+## 🚀 Services
+
+### Infrastructure Services
+- **Pi-hole**: DNS ad-blocking (http://192.168.1.200)
+- **Homepage Dashboard**: Centralized service access (http://homelab.local)
+
+### Automation & Workflows
+- **n8n**: Workflow automation platform (http://n8n.homelab.local)
+
+### Applications
+- **Password Manager**: 
+  - **Language**: Java 11
+  - **Database**: PostgreSQL  
+  - **Security**: AES-256 encryption with PBKDF2 key derivation
+  - **Features**: Multi-user support, encrypted password storage
+
+## 🔧 Access Points
+
+| Service | URL | Description |
+|---------|-----|-------------|
+| Homepage | http://homelab.local | Main dashboard |
+| Pi-hole | http://192.168.1.200 | DNS management |
+| n8n | http://n8n.homelab.local | Workflow automation |
+| Prometheus | http://192.168.1.202:9090 | Metrics collection |
+| Grafana | http://192.168.1.201:3000 | Metrics visualization |
 
 ## 🚧 Work in Progress
 
