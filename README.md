@@ -4,7 +4,7 @@ A complete K3s homelab setup with centralized dashboard, monitoring, automation,
 
 ## 📋 Dashboard
 
-![Homelab Dashboard](homelab-dashboard.png)
+![Homelab Dashboard](screenshots/homelab-dashboard.png)
 
 *Centralized Homer dashboard providing easy access to all homelab services*
 
