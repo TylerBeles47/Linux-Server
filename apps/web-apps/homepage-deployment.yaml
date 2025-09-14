@@ -1,0 +1,72 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: web-apps
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: homepage
+  namespace: web-apps
+  labels:
+    app: homepage
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: homepage
+  template:
+    metadata:
+      labels:
+        app: homepage
+    spec:
+      containers:
+      - name: homepage
+        image: b4bz/homer:latest
+        ports:
+        - containerPort: 8080
+        volumeMounts:
+        - name: homer-config
+          mountPath: /www/assets/config.yml
+          subPath: config.yml
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "50m"
+          limits:
+            memory: "128Mi"
+            cpu: "100m"
+      volumes:
+      - name: homer-config
+        configMap:
+          name: homer-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: homepage-service
+  namespace: web-apps
+spec:
+  selector:
+    app: homepage
+  ports:
+    - port: 80
+      targetPort: 8080
+      protocol: TCP
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: homepage-loadbalancer
+  namespace: web-apps
+  annotations:
+    metallb.universe.tf/loadBalancerIPs: 192.168.1.204
+spec:
+  selector:
+    app: homepage
+  ports:
+    - port: 80
+      targetPort: 8080
+      protocol: TCP
+  type: LoadBalancer

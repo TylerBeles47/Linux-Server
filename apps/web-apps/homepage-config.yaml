@@ -1,0 +1,59 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: homer-config
+  namespace: web-apps
+data:
+  config.yml: |
+    title: "Tyler's Homelab"
+    subtitle: "Dashboard"
+    logo: "logo.png"
+    
+    header: true
+    footer: false
+    
+    defaults:
+      layout: columns
+      colorTheme: auto
+    
+    services:
+      - name: "Infrastructure"
+        icon: "fas fa-server"
+        items:
+          - name: "Pi-hole"
+            logo: "https://github.com/pi-hole/graphics/raw/master/Vortex/Vortex_with_text.png"
+            subtitle: "DNS Ad Blocker"
+            url: "http://192.168.1.200"
+            target: "_blank"
+          
+      - name: "Monitoring"
+        icon: "fas fa-chart-line"
+        items:
+          - name: "Prometheus"
+            icon: "fas fa-chart-bar"
+            subtitle: "Metrics Collection"
+            url: "http://192.168.1.202:9090"
+            target: "_blank"
+          - name: "Grafana" 
+            logo: "https://grafana.com/static/img/menu/grafana2.svg"
+            subtitle: "Metrics Visualization"
+            url: "http://192.168.1.201:3000"
+            target: "_blank"
+            
+      - name: "Automation"
+        icon: "fas fa-cogs"
+        items:
+          - name: "n8n"
+            logo: "https://raw.githubusercontent.com/n8n-io/n8n/master/assets/n8n-logo.png"
+            subtitle: "Workflow Automation"
+            url: "http://n8n.homelab.local"
+            target: "_blank"
+            
+      - name: "Applications"
+        icon: "fas fa-th"
+        items:
+          - name: "Password Manager"
+            icon: "fas fa-key"
+            subtitle: "Secure Password Storage"
+            url: "http://passwords.homelab.local"
+            target: "_blank"

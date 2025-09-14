@@ -61,8 +61,6 @@ spec:
           env:
             - name: TZ
               value: "America/Chicago"
-            - name: WEBPASSWORD
-              value: "admin123"
             - name: PIHOLE_DNS_
               value: "8.8.8.8;8.8.4.4"
             - name: FTLCONF_DNS_LISTENINGMODE
