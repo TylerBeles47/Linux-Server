@@ -20,6 +20,8 @@ spec:
       labels:
         app: homepage
     spec:
+      nodeSelector:
+        kubernetes.io/hostname: tylerhpdesk
       containers:
       - name: homepage
         image: b4bz/homer:latest
@@ -53,20 +55,5 @@ spec:
     - port: 80
       targetPort: 8080
       protocol: TCP
-  type: ClusterIP
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: homepage-loadbalancer
-  namespace: web-apps
-  annotations:
-    metallb.universe.tf/loadBalancerIPs: 192.168.1.204
-spec:
-  selector:
-    app: homepage
-  ports:
-    - port: 80
-      targetPort: 8080
-      protocol: TCP
-  type: LoadBalancer
+      nodePort: 30080
+  type: NodePort

@@ -3,12 +3,10 @@ kind: Ingress
 metadata:
   name: homepage-ingress
   namespace: web-apps
-  annotations:
-    ingress.cilium.io/loadbalancer-mode: dedicated
 spec:
   ingressClassName: cilium
   rules:
-  - host: homelab.local
+  - host: dashboard.homelab.local
     http:
       paths:
       - path: /

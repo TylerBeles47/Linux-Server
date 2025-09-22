@@ -12,5 +12,6 @@ spec:
   - name: http
     port: 5678
     targetPort: 5678
+    nodePort: 30678
     protocol: TCP
-  type: ClusterIP
+  type: NodePort
