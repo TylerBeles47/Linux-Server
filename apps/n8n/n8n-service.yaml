@@ -5,6 +5,8 @@ metadata:
   namespace: n8n
   labels:
     app: n8n
+  annotations:
+    io.cilium/lb-ipam-ips: 192.168.1.223
 spec:
   selector:
     app: n8n
@@ -12,6 +14,5 @@ spec:
   - name: http
     port: 5678
     targetPort: 5678
-    nodePort: 30678
     protocol: TCP
-  type: NodePort
+  type: LoadBalancer

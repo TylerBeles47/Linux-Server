@@ -48,6 +48,8 @@ kind: Service
 metadata:
   name: homepage-service
   namespace: web-apps
+  annotations:
+    io.cilium/lb-ipam-ips: 192.168.1.225
 spec:
   selector:
     app: homepage
@@ -55,5 +57,4 @@ spec:
     - port: 80
       targetPort: 8080
       protocol: TCP
-      nodePort: 30080
-  type: NodePort
+  type: LoadBalancer

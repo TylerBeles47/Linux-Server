@@ -5,6 +5,8 @@ metadata:
   namespace: jellyfin
   labels:
     app: jellyfin
+  annotations:
+    io.cilium/lb-ipam-ips: 192.168.1.224
 spec:
   selector:
     app: jellyfin
@@ -12,6 +14,5 @@ spec:
   - name: http
     port: 8096
     targetPort: 8096
-    nodePort: 30096
     protocol: TCP
-  type: NodePort
+  type: LoadBalancer
