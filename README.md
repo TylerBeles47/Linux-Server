@@ -1,4 +1,4 @@
-# Homelab Kubernetes Cluster
+# Linux Kubernetes Cluster
 
 A complete K3s homelab setup with centralized dashboard, monitoring, automation, and network services.
 
@@ -67,14 +67,52 @@ loadBalancerIPs: true
 - **Visualization**: Grafana (http://192.168.1.212:3000)
 - **Cluster Management**: k9s terminal interface
 
-## 🚀 Services
+## 🚀 Services & Applications
 
-### Infrastructure Services
-- **Pi-hole**: DNS ad-blocking (http://192.168.1.210)
-- **Homer Dashboard**: Centralized service access (http://192.168.1.225)
+### 🛡️ Network Infrastructure
+**Pi-hole** (http://192.168.1.210)
+- **Purpose**: Network-wide DNS filtering and ad-blocking
+- **Function**: Blocks malicious domains, trackers, and advertisements at the DNS level
+- **Benefits**: Improves browsing speed, reduces data usage, protects all network devices
+- **Features**: Custom blocklists, query logging, network-wide statistics
 
-### Automation & Workflows
-- **n8n**: Workflow automation platform (http://n8n.homelab.local)
+**Homer Dashboard** (http://192.168.1.225)  
+- **Purpose**: Centralized service discovery and access portal
+- **Function**: Single dashboard providing organized access to all homelab services
+- **Benefits**: Eliminates need to remember IP addresses and ports
+- **Features**: Service health monitoring, organized service categories
+
+### 📊 Monitoring & Observability
+**Prometheus** (http://192.168.1.213:9090)
+- **Purpose**: Metrics collection and time-series database
+- **Function**: Scrapes metrics from all cluster nodes and applications
+- **Benefits**: Historical performance data, alerting capabilities
+- **Features**: PromQL queries, service discovery, alert rules
+
+**Grafana** (http://192.168.1.212:3000)
+- **Purpose**: Metrics visualization and dashboarding
+- **Function**: Creates interactive dashboards from Prometheus metrics
+- **Benefits**: Visual insights into system performance and health
+- **Features**: Custom dashboards, alerting, data exploration
+
+**Node Exporter** (Running on all nodes)
+- **Purpose**: System-level metrics collection
+- **Function**: Exports hardware and OS metrics (CPU, memory, disk, network)
+- **Benefits**: Infrastructure monitoring and capacity planning
+
+### 🤖 Automation & Workflows  
+**n8n** (Available via Ingress)
+- **Purpose**: Workflow automation and integration platform
+- **Function**: Creates automated workflows between different services and APIs
+- **Benefits**: Reduces manual tasks, integrates disparate systems
+- **Features**: Visual workflow editor, 400+ integrations, webhook support
+
+### 🎬 Media & Entertainment
+**Jellyfin** (Available via LoadBalancer)
+- **Purpose**: Self-hosted media streaming server
+- **Function**: Organizes and streams movies, TV shows, and music
+- **Benefits**: Private Netflix-like experience without subscription fees
+- **Features**: Transcoding, mobile apps, user management
 
 ### Applications
 - **Password Manager**: 
@@ -83,15 +121,6 @@ loadBalancerIPs: true
   - **Security**: AES-256 encryption with PBKDF2 key derivation
   - **Features**: Multi-user support, encrypted password storage
 
-## 🔧 Access Points
-
-| Service | URL | Description |
-|---------|-----|-------------|
-| Homer Dashboard | http://192.168.1.225 | Main service dashboard |
-| Pi-hole | http://192.168.1.210 | DNS management & ad-blocking |
-| Prometheus | http://192.168.1.213:9090 | Metrics collection |
-| Grafana | http://192.168.1.212:3000 | Metrics visualization |
-| Cilium Ingress | http://192.168.1.211 | HTTP/HTTPS ingress (available) |
 
 ## 🚧 Work in Progress
 
